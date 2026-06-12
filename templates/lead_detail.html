@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="/" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+</div>
+
+{% if not lead %}
+<div class="alert alert-danger">Lead not found.</div>
+{% else %}
+<div class="row">
+    <!-- Left Column -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white pb-0">
+                <h5 class="card-title">Lead Info</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Name:</strong> {{ lead.name }}</p>
+                <p><strong>Email:</strong> {{ lead.email }}</p>
+                <p><strong>Phone:</strong> {{ lead.phone or 'N/A' }}</p>
+                <p><strong>Product:</strong> {{ lead.product or 'N/A' }}</p>
+                <p><strong>Budget:</strong> {{ lead.budget or 'N/A' }}</p>
+                <p><strong>Message:</strong> {{ lead.message or 'N/A' }}</p>
+                <hr>
+                <div class="d-grid gap-2">
+                    {% if lead.status in ['email_sent', 'follow_up_sent'] %}
+                    <button class="btn btn-success" onclick="markReplied('{{ lead.id }}')">Mark as Replied</button>
+                    {% endif %}
+                    {% if lead.status != 'closed' %}
+                    <button class="btn btn-dark" onclick="closeLead('{{ lead.id }}')">Close Lead</button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white pb-0">
+                <h5 class="card-title">HubSpot</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Contact ID:</strong> {{ lead.hubspot_contact_id or 'N/A' }}</p>
+                <p><strong>Deal ID:</strong> {{ lead.hubspot_deal_id or 'N/A' }}</p>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white pb-0">
+                <h5 class="card-title">Timeline</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Created:</strong><br>{{ lead.created_at.strftime('%Y-%m-%d %H:%M:%S UTC') if lead.created_at
+                    else 'N/A' }}</p>
+                <p><strong>First Email Sent:</strong><br>{{ lead.first_email_sent_at.strftime('%Y-%m-%d %H:%M:%S UTC')
+                    if lead.first_email_sent_at else 'N/A' }}</p>
+                <p><strong>Follow-up Sent:</strong><br>{{ lead.followup_sent_at.strftime('%Y-%m-%d %H:%M:%S UTC') if
+                    lead.followup_sent_at else 'N/A' }}</p>
+                <p><strong>Replied:</strong><br>{{ lead.replied_at.strftime('%Y-%m-%d %H:%M:%S UTC') if lead.replied_at
+                    else 'N/A' }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-md-8 mb-4">
+        {% if lead.error_log %}
+        <div class="alert alert-danger shadow-sm">
+            <strong>Error:</strong> {{ lead.error_log }}
+        </div>
+        {% endif %}
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white pb-0">
+                <h5 class="card-title">AI First Email</h5>
+            </div>
+            <div class="card-body">
+                {% if lead.first_email_body %}
+                <pre class="bg-light p-3 rounded">{{ lead.first_email_body }}</pre>
+                {% else %}
+                <p class="text-muted">No email generated yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if lead.followup_email_body %}
+        <div class="card shadow-sm">
+            <div class="card-header bg-white pb-0">
+                <h5 class="card-title">AI Follow-up Email</h5>
+            </div>
+            <div class="card-body">
+                <pre class="bg-light p-3 rounded">{{ lead.followup_email_body }}</pre>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function markReplied(id) {
+        if (!confirm("Are you sure you want to mark this lead as replied?")) return;
+        try {
+            const response = await fetch(`/api/leads/${id}/replied`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert("Failed to update status.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("An error occurred.");
+        }
+    }
+
+    async function closeLead(id) {
+        if (!confirm("Are you sure you want to close this lead?")) return;
+        try {
+            const response = await fetch(`/api/leads/${id}/close`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert("Failed to close lead.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("An error occurred.");
+        }
+    }
+</script>
+{% endblock %}

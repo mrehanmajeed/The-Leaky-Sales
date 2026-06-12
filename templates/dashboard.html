@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-2">
+        <div class="card stat-card bg-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-people fs-2 text-secondary mb-2"></i>
+                <h5 class="card-title text-muted fs-6 text-uppercase">Total Leads</h5>
+                <p class="display-6 mb-0">{{ stats.total }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card bg-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-envelope fs-2 text-primary mb-2"></i>
+                <h5 class="card-title text-muted fs-6 text-uppercase">Emails Sent</h5>
+                <p class="display-6 mb-0">{{ stats.email_sent }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card bg-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-envelope-open fs-2 text-warning mb-2"></i>
+                <h5 class="card-title text-muted fs-6 text-uppercase">Follow-ups Sent</h5>
+                <p class="display-6 mb-0">{{ stats.follow_up_sent }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card bg-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle fs-2 text-success mb-2"></i>
+                <h5 class="card-title text-muted fs-6 text-uppercase">Replied</h5>
+                <p class="display-6 mb-0">{{ stats.replied }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card bg-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-lock fs-2 text-dark mb-2"></i>
+                <h5 class="card-title text-muted fs-6 text-uppercase">Closed</h5>
+                <p class="display-6 mb-0">{{ stats.closed }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card stat-card bg-white shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-exclamation-triangle fs-2 text-danger mb-2"></i>
+                <h5 class="card-title text-muted fs-6 text-uppercase">Failed</h5>
+                <p class="display-6 mb-0">{{ stats.failed }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Product</th>
+                        <th>Budget</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lead in leads %}
+                    <tr>
+                        <td>{{ lead.id }}</td>
+                        <td>{{ lead.name }}</td>
+                        <td>{{ lead.email }}</td>
+                        <td>{{ lead.product }}</td>
+                        <td>{{ lead.budget }}</td>
+                        <td>
+                            {% set status_class = 'secondary' %}
+                            {% if lead.status == 'email_sent' %}{% set status_class = 'primary' %}
+                            {% elif lead.status == 'email_failed' %}{% set status_class = 'danger' %}
+                            {% elif lead.status == 'follow_up_sent' %}{% set status_class = 'warning text-dark' %}
+                            {% elif lead.status == 'replied' %}{% set status_class = 'success' %}
+                            {% elif lead.status == 'closed' %}{% set status_class = 'dark' %}
+                            {% endif %}
+                            <span class="badge bg-{{ status_class }}">{{ lead.status.replace('_', ' ').title() }}</span>
+                        </td>
+                        <td>{{ lead.created_at.strftime('%Y-%m-%d %H:%M') if lead.created_at else '' }}</td>
+                        <td>
+                            <a href="/lead/{{ lead.id }}" class="btn btn-sm btn-outline-primary">View</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">No leads found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
